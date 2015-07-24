@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>IGN - Plateforme nationale des ERP - version BETA</title>
+    <link rel="apple-touch-icon" href="images/icon128.png"/>
+    <link rel="apple-touch-startup-image" href="images/icon128.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link href="{{ app.request.basepath }}/css/leaflet.css" rel="stylesheet">
+    <link href="{{ app.request.basepath }}/css/leaflet.photon.css" rel="stylesheet">
+    <link href="{{ app.request.basepath }}/css/app.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <script src="{{ app.request.basepath }}/js/html5shiv.min.js"></script>
+    <script src="{{ app.request.basepath }}/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+      <div data-role="header" data-position="fixed" id="header">
+         <img src="{{ app.request.basepath }}/img/logo_ign_light.gif" alt="IGN"/>
+         <h1><a href="{{ app.request.basepath }}/">Plateforme nationale des ERP</a></h1>
+      </div>
+      <div id="map_canvas"></div>
+      <div id="content">
+        <div id="search" class="boxtitle">
+        <h2>Recherche <span id="loading"></span></h2>
+        </div>
+        <div id="box_search" class="box">
+            <form id="getsearch" name="getsearch">
+            <div>
+                <div id="headsearch">
+                    <input type="text" id="q"/><br />
+                    <label for="fq">Filtrer par département</label>
+                    <select id="fq" name="fq">
+                        <option value="">Tous</option>
+                        <option value="dpt_num:32">32</option>
+                    </select>
+                    <input type="button" value="Ok" title="Recherche complète" id="simple" class="searchbtn" />
+                    <input type="button" value="Carte" title="Dans le périmètre affiché par la carte" id="carte" class="searchbtn" />
+                    <input type="button" value="Autour de moi" title="Nécessite un navigateur compatible. Précision selon votre matériel" id="autour" class="searchbtn" />
+                    <input type="hidden" id="start" value="0" />
+                    <div id="summary"><h2></h2></div>
+                </div>
+                <div id="searchresults"></div>
+            </div>
+            </form>
+        </div>
+        <div id="layers" class="boxtitle">
+        <h2>Calques</h2>
+        </div>
+        <div id="box_layers" class="box">
+            <select id="layer">
+                <option value="adresse">Adresses</option>
+                <option value="batiment" selected>Bâtiment</option>
+                <option value="pai_culture_et_loisirs">PAI Culture et loisirs</option>
+                <option value="pai_equipement_administratif_ou_militaire">PAI Eqt Administratif ou Militaire</option>
+                <option value="pai_espace_naturel">PAI Espace Naturel</option>
+                <option value="pai_gestion_des_eaux">PAI Gestion des eaux</option>
+                <option value="pai_hydrographie">PAI Hydrographie</option>
+                <option value="pai_industriel_et_commercial">PAI Industriel et Commercial</option>
+                <option value="pai_orographie">PAI Orographie</option>
+                <option value="pai_religieux">PAI Religieux</option>
+                <option value="pai_sante">PAI Santé</option>
+                <option value="pai_science_et_enseignement">PAI Science et Enseignement</option>
+                <option value="pai_sport">PAI Sport</option>
+                <option value="pai_transport">PAI Transport</option>
+                <option value="pai_zone_habitation">PAI Zone d'Habitation</option>
+                <option value="piste_d_aerodrome">Piste d'aérodrome</option>
+                <option value="cimetiere">Cimetière</option>
+                <option value="terrain_de_sport">Terrain de sport</option>
+            </select>
+            <input type="button" onclick="javascript:getWFS()" value="Charger BDUNI" />
+            <input type="checkbox" id="auto" title="Chargement automatique">
+            <input type="button" onclick="window.location.reload()" value="Reset" />
+            <span id="features" title="Nombre d\'objets de la dernière requête (max : 1000)"></span>
+            <div id="layerlist"></div>
+        </div>
+        <div id="edit" class="boxtitle">
+        <h2>Edition</h2>
+        </div>
+        <div id="box_edit" class="box">
+        <form id="formedit" name="formedit">
+
+            <input id="id" name="id" type="hidden">
+            <input id="id_adresse" name="id_adresse" type="hidden">
+            <input id="x" name="x" type="hidden">
+            <input id="y" name="y" type="hidden">
+            <input id="precision" name="precision" type="hidden">
+            <input id="id_editeur" name="id_editeur" type="hidden" value="IGN Tests" required>
+            <input id="creation" name="creation" type="hidden">
+            <input id="modif" name="modif" type="hidden">
+
+            <fieldset>
+                <legend>Etablissement</legend>
+            <table>
+            <tr><td><label for="nom">Nom</label></td><td><input id="nom" name="nom" type="text" size="44" placeholder="" required></td></tr>
+            <tr><td><label for="activite">Désignation</label></td><td>
+            <div id="activite2">
+            <input type="text" id="activite" name="activite" class="typeahead" size="44" />
+            </div>
+            </td></tr>
+            <tr><td><label for="actif">En activité</label></td><td>
+            <select id="actif" name="actif">
+                <option value="true">oui</option>
+                <option value="false">non</option>
+            </select>
+            </td></tr>
+            <tr><td><label for="public">Organisation</label></td><td>
+            <select id="public" name="public">
+                <option value="0"></option>
+                <option value="true">publique</option>
+                <option value="false">privée</option>
+            </select>
+            </td></tr>
+            <tr><td><label for="capacite">Capacité d'accueil</label></td><td><input id="capacite" name="capacite" type="text" placeholder="120" size="4" required></td></tr>
+            <tr><td><label for="hebergement">Couchages</label></td><td><input id="hebergement" name="hebergement" type="text" placeholder="20" size="4" required></td></tr>
+            <tr><td><label for="personnel">Personnel</label></td><td><input id="personnel" name="personnel" type="text" placeholder="12" size="4" required></td></tr>
+            <tr><td><label for="categorie">Catégorie</label></td><td>
+                <select id="categorie" name="categorie">
+                    <option value="0"></option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </td></tr>
+            <tr><td><label for="type">Type</label></td><td>
+                <select id="type" name="type" required>
+                    <option value=""></option>
+                    <option value="J">Structures d’accueil pour personnes âgées</option>
+                    <option value="J">Structures d’accueil pour personnes handicapées</option>
+                    <option value="L">Salles d'auditions, de conférences, de réunions</option>
+                    <option value="L">Salles de spectacles ou à usage multiple</option>
+                    <option value="M">Magasins de vente, centres commerciaux</option>
+                    <option value="N">Restaurants et débits de boisson</option>
+                    <option value="O">Hôtels et autres établissements d’hébergement</option>
+                    <option value="P">Salles de danse et salles de jeux</option>
+                    <option value="R">Établissements d’éveil, d’enseignement, de formation</option>
+                    <option value="R">Centres de vacances, centres de loisirs sans hébergement</option>
+                    <option value="R">Ecole maternelles, creches, jardins d'enfants, hates garderie</option>
+                    <option value="R">Autres établissements d'enseignement</option>
+                    <option value="R">Etablissements avec locaux réservés au sommeil</option>
+                    <option value="S">Bibliothèques, centres de documentation</option>
+                    <option value="T">Salles d'exposition à vocation commerciale</option>
+                    <option value="U">Établissements de soins sans hébergement</option>
+                    <option value="U">Établissements de soins avec hébergement</option>
+                    <option value="V">Établissements de divers cultes</option>
+                    <option value="W">Administrations, banques, bureaux</option>
+                    <option value="X">Établissements sportifs couverts</option>
+                    <option value="Y">Musées</option>
+                    <option value="PA">Établissements de Plein Air</option>
+                    <option value="CTS">Chapiteaux, Tentes et Structures toile</option>
+                    <option value="SG">Structures Gonflables</option>
+                    <option value="PS">Parcs de Stationnement couverts</option>
+                    <option value="OA">Hôtels-Restaurants d'Altitude</option>
+                    <option value="GA" title="chemins de fer, téléphériques, remonte-pentes...">Gares Accessibles au public</option>
+                    <option value="EF">Établissements flottants (eaux intérieures)</option>
+                    <option value="REF">Refuges de montagne</option>
+                </select>
+            </td></tr>
+            <tr><td><label for="accessible">Accessibilité</label></td><td>
+                <select id="accessible" name="accessible">
+                    <option value="0"></option>
+                    <option value="1">oui</option>
+                    <option value="2">sur demande</option>
+                    <option value="3">prévue (ADAP)</option>
+                    <option value="4">non</option>
+                </select>
+            </td></tr>
+            <tr><td><label for="siret">Code SIRET</label></td><td><input id="siret" name="siret" type="text" placeholder=""></td></tr>
+            <tr><td><label for="code_ape">Code APE</label></td><td><input id="code_ape" name="code_ape" type="text" placeholder=""></td></tr>
+            <tr><td><label for="etat">BD ERP</label></td><td>
+            <select id="etat" name="etat">
+                <option value="1">publier</option>
+                <option value="2">mettre en attente</option>
+                <option value="0">supprimer</option>
+            </select>
+            </td></tr>
+            </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Cet établissement fait partie d'un ensemble (Ex: D'un centre commercial)</legend>
+            <table>
+            <tr><td><label for="id_parent">Nom de l'établissement dont il fait partie</label></td><td>
+                <input id="id_parent" name="id_parent" type="hidden">
+                <input id="help_id_parent" name="help_id_parent" type="text" placeholder="nom de l'établissement">
+            </td></tr>
+            </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Adresse</legend>
+            <table>
+            <tr><td>Autocompletion</td><td><input type="text" id="adresse" /></td></tr>
+            <tr><td><label for="numero">Numéro</label></td><td>
+                <input id="numero" name="numero" type="text" placeholder="10" size="3">
+                <input id="repetition" name="repetition" type="text" placeholder="bis" size="3">
+            </td></tr>
+            <tr><td><label for="voie">Nom de la voie</label></td><td><input id="voie" name="voie" type="text" placeholder="Rue de l'église"></td></tr>
+            <tr><td><label for="complement">Complément d'adressage</label></td><td><input id="complement" name="complement" type="text" placeholder="Les Primèveres"></td></tr>
+            <tr><td><label for="entree">Désignation de l'entrée</label></td><td><input id="entree" name="entree" type="text" placeholder="Batiment A"></td></tr>
+            <tr><td><label for="lieu_dit">Nom du lieu-dit</label></td><td><input id="lieu_dit" name="lieu_dit" type="text" placeholder=""></td></tr>
+            <tr><td><label for="code_post">Code postal</label></td><td><input id="code_post" name="code_post" type="text" placeholder="75015" size="4"></td></tr>
+            <tr><td><label for="insee_com">Code INSEE</label></td><td><input id="insee_com" name="insee_com" type="text" placeholder="75115" size="4"></td></tr>
+            <tr><td><label for="nom_com">Nom de la commune</label></td><td><input id="nom_com" name="nom_com" type="text" placeholder="Paris"></td></tr>
+            <tr><td><label for="dpt_num">Numéro de département</label></td><td><input id="dpt_num" name="dpt_num" type="text" placeholder="75"></td></tr>
+            </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Bâti, enceinte et informations géographiques</legend>
+            <table>
+            <tr><td><label for="id_bati">Bâti</label></td><td>
+                <input id="id_bati" name="id_bati" type="hidden" placeholder="">
+                <a href="">Ajouter le(s) bâtiment(s) en cliquant sur la carte</a>
+            </td></tr>
+            <tr><td><label for="id_encte">Enceinte</label></td><td>
+                <input id="id_encte" name="id_encte" type="hidden" placeholder="">
+                <a href="">Ajouter l'enceinte en cliquant sur la carte</a>
+            </td></tr>
+            <tr><td><label for="infos">Informations</label></td><td>
+                <a href="">Ajouter une information en cliquant sur la carte</a>
+            </td></tr>
+            </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Identifiants</legend>
+            <table>
+            <tr><td><label for="id_sdis">SDIS</label></td><td><input id="id_sdis" name="id_sdis" type="text" placeholder=""></td></tr>
+            <tr><td><label for="id_ddt">DDT</label></td><td><input id="id_ddt" name="id_ddt" type="text" placeholder=""></td></tr>
+            <tr><td><label for="id_mairie">Mairie</label></td><td><input id="id_mairie" name="id_mairie" type="text" placeholder=""></td></tr>
+            </table>
+            </fieldset>
+            <br />
+            <input type="submit" value="Enregistrer" />
+            <br />
+        </form>
+        </div>
+      </div>
+      <div style="display: none;"><img src="/img/ajax-loader.gif" /></div>
+    <script src="{{ app.request.basepath }}/js/leaflet.js"></script>
+    <script src="{{ app.request.basepath }}/js/leaflet.photon.js"></script>
+    <script src="{{ app.request.basepath }}/js/jquery-1.11.1.min.js"></script>
+    <script src="{{ app.request.basepath }}/js/typeahead.bundle.min.js"></script>
+    <script src="{{ app.request.basepath }}/js/app.js"></script>
+  </body>
+</html>

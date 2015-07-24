@@ -1,0 +1,25 @@
+<?php
+
+// Doctrine (db)
+$app['db.options'] = array(
+    'driver'   => 'pdo_pgsql',
+    'charset'  => 'utf8',
+    'host'     => 'localhost',
+    'port'     => '5432',
+    'dbname'   => 'erp',
+    'user'     => 'erp',
+    'password' => '***********',
+);
+
+// WFS BD UNI
+$app['bduni'] = array(
+    'url' => 'http://',
+    'layers' => array('adresse', 'aire_de_triage', 'barriere', 'batiment', 'canalisation', 'chef_lieu', 'cimetiere', 'commune', 'construction_lineaire', 'construction_ponctuelle', 'construction_surfacique', 'cours_d_eau_nomme', 'gr_vosgien', 'ligne_electrique', 'limite_administrative_view', 'non_communication', 'pai_culture_et_loisirs', 'pai_equipement_administratif_ou_militaire', 'pai_espace_naturel', 'pai_gestion_des_eaux', 'pai_hydrographie', 'pai_industriel_et_commercial', 'pai_orographie', 'pai_religieux', 'pai_sante', 'pai_science_et_enseignement', 'pai_sport', 'pai_transport', 'pai_zone_habitation', 'piste_d_aerodrome', 'pylone', 'reconciliations', 'reservoir', 'route_numerotee_ou_nommee', 'surface_d_eau', 'surface_de_route', 'terrain_de_sport', 'transport_par_cable', 'troncon_de_cours_d_eau', 'troncon_de_cours_d_eau_nomme_view', 'troncon_de_route', 'troncon_de_voie_ferree', 'voie_ferree_nommee', 'zone_arboree_view', 'zone_de_vegetation_view')
+);
+
+// WFS Geoportail
+$app['geoportail'] = array(
+    'url' => 'http://wxs.ign.fr/***api_key***/geoportail/wfs?SERVICE=WFS&VERSION=1.0.0&srsName=epsg:4326&REQUEST=GetFeature&outputFormat=json',
+    'referer' => 'http://dev.erp-ign.fr',
+    'layers' => array('BDPARCELLAIRE-VECTEUR_WLD_BDD_WGS84G:parcelle')
+);

@@ -1,0 +1,12 @@
+{
+    "require": {
+        "silex/silex": "~1.3",
+        "twig/twig": "1.*",
+        "doctrine/dbal": "~2.5",
+        "phayes/geophp": "~1.2",
+        "jasongrimes/silex-simpleuser": "2.*"
+    },
+    "autoload": {
+        "psr-4": {"ERP\\": "src"}
+    }
+}

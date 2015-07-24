@@ -1,0 +1,4 @@
+vendor/
+app/config/prod.php
+composer.lock
+composer.phar
